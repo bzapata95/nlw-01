@@ -8,6 +8,7 @@ import {LeafletMouseEvent} from 'leaflet';
 
 import './CreatePoint.css';
 import logo from '../../assets/logo.svg';
+import Dropzone from '../../components/Dropzone';
 
 interface ItemsState {
   id: number;
@@ -41,6 +42,7 @@ const CreatePoint: React.FC = () => {
   const [selectedCity, setSelectedCity] = useState('0');
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [selectedPosition, setSelectedPosition] = useState<[number, number]>([0 , 0]);
+  const [selectedFile, setSelectedFile] = useState<File>();
 
   const history = useHistory();
 
@@ -117,16 +119,29 @@ const CreatePoint: React.FC = () => {
     const [latitude, longitude] = selectedPosition;
     const items = selectedItems;
 
-    const data = {
-      name, email, whatsapp, uf, city, latitude, longitude, items
+    const data = new FormData();
+
+    
+    data.append('name', name);
+    data.append('email', email);
+    data.append('whatsapp', whatsapp);
+    data.append('uf', uf);
+    data.append('city', city);
+    data.append('latitude', String(latitude));
+    data.append('longitude', String(longitude));
+    data.append('items', items.join(','));
+    
+    if(selectedFile) {
+      data.append('image', selectedFile);
     }
+    
 
     await api.post('/points', data);
 
     alert('Punto de recolección creado!');
     history.push('/');
 
-  },[formData, history, selectedCity, selectedItems, selectedPosition, selectedUf])
+  },[formData, history, selectedCity, selectedFile, selectedItems, selectedPosition, selectedUf])
 
   return (
     <div id="page-create-point">
@@ -140,6 +155,9 @@ const CreatePoint: React.FC = () => {
 
       <form onSubmit={handleSubmit}>
         <h1>Registre el <br/> Punto de Recolección</h1>
+
+        <Dropzone onFileUploaded={setSelectedFile} />
+
 
         <fieldset>
           <legend>
